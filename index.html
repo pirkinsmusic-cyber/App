@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#101318">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="FORGE">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>FORGE · Muscle Tracker</title>
+<style>
+:root{color-scheme:dark;--bg:#101318;--panel:#1c222b;--line:#303640;--muted:#9ca3af;--green:#76d6a0;--blue:#64b9f2;--gold:#f0bb65;--purple:#c5a0f2}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:#f7f8fa;font:16px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;padding:env(safe-area-inset-top) 16px calc(28px + env(safe-area-inset-bottom));max-width:680px;margin-inline:auto}
+header{display:flex;justify-content:space-between;align-items:center;padding:20px 2px 16px}h1{font-size:28px;letter-spacing:3px;margin:0}.sub,.muted,small{color:var(--muted)}.sub{font-size:11px;letter-spacing:1.3px;margin-top:3px}
+section,.panel{background:var(--panel);border:1px solid #252c36;border-radius:17px;padding:16px;margin:12px 0}
+.sectionhead{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:12px}h2{font-size:16px;margin:0}h3{font-size:13px;margin:0 0 8px;color:#d5dbe3}
+.big{font-size:30px;font-weight:750;letter-spacing:-1px}.big span{font-size:14px;color:var(--muted);font-weight:500;letter-spacing:0}
+.progress{height:9px;background:#343b46;border-radius:99px;overflow:hidden;margin:10px 0 6px}.progress>i{display:block;height:100%;background:var(--green);border-radius:99px;width:0}
+.row{display:flex;justify-content:space-between;align-items:center;gap:10px}.macrogrid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}.macro{padding:12px;border-radius:12px;background:#202a27}.macro:nth-child(2){background:#2a271f}.macro:nth-child(3){background:#292331}.macro b{display:block;font-size:22px;margin:5px 0}.macro label{font-size:11px;font-weight:700;letter-spacing:.6px}.macro small{font-size:11px}
+label{display:block;font-size:12px;color:#bdc5d0;margin:9px 0 5px}input{width:100%;padding:12px;border-radius:10px;border:1px solid #414956;background:#11161d;color:white;font:inherit;min-width:0}
+button{border:0;border-radius:11px;padding:12px 14px;background:var(--green);color:#102018;font-weight:700;font-size:14px;cursor:pointer}button.secondary{background:#303945;color:#f3f5f7}button.outline{background:transparent;color:var(--green);border:1px solid #527b65}button:disabled{opacity:.45}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}.foodrow{padding:12px 0;border-bottom:1px solid var(--line)}.foodrow:last-child{border:0}.foodrow strong{font-size:14px}.foodrow small{display:block;margin-top:4px}.delete{padding:6px 9px;background:transparent;color:#e99b9b;font-size:12px}
+.waterbuttons{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.waterbuttons button{flex:1}
+#scanner{display:none;margin-top:12px;border-radius:12px;overflow:hidden}#reader{width:100%}.hint{font-size:12px;color:var(--muted);line-height:1.5}.notice{font-size:12px;color:#c5ced8;line-height:1.5;background:#202833;padding:10px;border-radius:10px;margin-top:10px}
+footer{text-align:center;color:#66717e;font-size:11px;padding:14px}
+@media(max-width:360px){body{padding-inline:11px}.macro{padding:9px}.big{font-size:26px}}
+</style>
+</head>
+<body>
+<header><div><h1>FORGE</h1><div class="sub">MUSCLE BUILDING TRACKER</div></div><div style="font-size:28px">🏋️</div></header>
+<section>
+ <div class="sectionhead"><h2>TODAY'S CALORIES</h2><button class="secondary" id="editGoals">Edit goals</button></div>
+ <div class="big"><span id="calories">0</span> <span>/ <span id="goalCal">2800</span> kcal</span></div>
+ <div class="progress"><i id="calBar"></i></div><div class="row muted" style="font-size:12px"><span id="calPct">0% of daily goal</span><b id="remaining" style="color:var(--green)">2800 kcal remaining</b></div>
+</section>
+<section><h2 style="margin-bottom:12px">MACRONUTRIENTS</h2><div class="macrogrid">
+ <div class="macro"><label style="color:var(--green)">PROTEIN</label><b id="protein">0g</b><small>of <span id="goalProtein">180</span>g</small><div class="progress"><i id="proteinBar"></i></div></div>
+ <div class="macro"><label style="color:var(--gold)">CARBS</label><b id="carbs">0g</b><small>of <span id="goalCarbs">300</span>g</small><div class="progress"><i id="carbsBar" style="background:var(--gold)"></i></div></div>
+ <div class="macro"><label style="color:var(--purple)">FAT</label><b id="fat">0g</b><small>of <span id="goalFat">85</span>g</small><div class="progress"><i id="fatBar" style="background:var(--purple)"></i></div></div>
+</div></section>
+<section>
+ <div class="sectionhead"><h2>BARCODE SCANNER</h2><button id="scanBtn">📷 Scan barcode</button></div>
+ <div id="scanner"><div id="reader"></div><button class="secondary" id="stopScan" style="width:100%;margin-top:8px">Stop scanner</button></div>
+ <label for="barcode">Or enter a UPC / EAN barcode</label><div class="row"><input id="barcode" placeholder="e.g. 5000159484695" inputmode="numeric"><button id="lookup">Look up</button></div>
+ <p class="hint" id="scanStatus">Scans packaged foods using your camera and looks up nutrition from Open Food Facts. Internet access is needed for product lookup.</p>
+</section>
+<section>
+ <h2 style="margin-bottom:12px">ADD FOOD MANUALLY</h2>
+ <label>Food name</label><input id="foodName" placeholder="e.g. Chicken breast">
+ <div class="grid2"><div><label>Calories (kcal)</label><input id="foodCal" type="number" min="0" placeholder="0"></div><div><label>Protein (g)</label><input id="foodProtein" type="number" min="0" placeholder="0"></div><div><label>Carbs (g)</label><input id="foodCarbs" type="number" min="0" placeholder="0"></div><div><label>Fat (g)</label><input id="foodFat" type="number" min="0" placeholder="0"></div></div>
+ <button id="addFood" style="width:100%;margin-top:13px">＋ Add to food diary</button>
+</section>
+<section><h2 style="margin-bottom:8px">TODAY'S FOOD DIARY</h2><div id="foodList" class="muted hint">Nothing logged yet. Add your first meal above.</div></section>
+<section>
+ <div class="sectionhead"><h2>💧 WATER INTAKE</h2><b id="waterAmount">0 mL</b></div><div class="progress"><i id="waterBar" style="background:var(--blue)"></i></div><div class="row muted" style="font-size:12px"><span id="waterPct">0% of goal</span><span>Goal: <b id="waterGoal">3000</b> mL</span></div>
+ <div class="waterbuttons"><button class="secondary" data-water="-250">−250</button><button class="secondary" data-water="250">＋250 mL</button><button class="secondary" data-water="500">＋500 mL</button></div>
+</section>
+<section>
+ <h2 style="margin-bottom:10px">⚖️ WEIGHT TRACKER</h2><label>Log weight (lbs)</label><div class="row"><input id="weightInput" type="number" min="0" step=".1" placeholder="e.g. 175.5"><button id="logWeight">Log weight</button></div>
+ <div id="weightHistory" class="hint muted" style="margin-top:12px">No weight entries yet.</div>
+</section>
+<section><h2>DAILY GOALS</h2><p class="hint">These starter targets are editable examples, not personalized recommendations. Adjust them to your body, training, and goals.</p><div id="goalEditor" style="display:none">
+ <div class="grid2"><div><label>Calories (kcal)</label><input id="setCal" type="number"></div><div><label>Protein (g)</label><input id="setProtein" type="number"></div><div><label>Carbs (g)</label><input id="setCarbs" type="number"></div><div><label>Fat (g)</label><input id="setFat" type="number"></div><div><label>Water (mL)</label><input id="setWater" type="number"></div></div><button id="saveGoals" style="width:100%;margin-top:12px">Save goals</button>
+ </div></section>
+<footer>FORGE · Your data is stored on this device in this browser.</footer>
+<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+<script>
+const $=id=>document.getElementById(id);
+const today=()=>new Date().toLocaleDateString('en-CA');
+const defaults={cal:2800,protein:180,carbs:300,fat:85,water:3000};
+let db=JSON.parse(localStorage.getItem('forgeData')||'{}');
+function day(){if(!db[today()])db[today()]={foods:[],water:0};return db[today()]}
+function goals(){return {...defaults,...(db.goals||{})}}
+function save(){localStorage.setItem('forgeData',JSON.stringify(db));render()}
+function pct(a,b){return Math.min(100,Math.round(a/Math.max(1,b)*100))}
+function render(){
+ const d=day(),g=goals(),sum=k=>d.foods.reduce((s,f)=>s+(Number(f[k])||0),0);
+ const c=sum('cal'),p=sum('protein'),carb=sum('carbs'),fat=sum('fat');
+ $('calories').textContent=Math.round(c).toLocaleString();$('goalCal').textContent=g.cal;$('calBar').style.width=pct(c,g.cal)+'%';$('calPct').textContent=pct(c,g.cal)+'% of daily goal';$('remaining').textContent=Math.max(0,g.cal-c).toLocaleString()+' kcal remaining';
+ [['protein',p,g.protein],['carbs',carb,g.carbs],['fat',fat,g.fat]].forEach(([id,v,t])=>{$(id).textContent=Math.round(v)+'g';$('goal'+id[0].toUpperCase()+id.slice(1)).textContent=t;$(id+'Bar').style.width=pct(v,t)+'%'});
+ $('waterAmount').textContent=d.water.toLocaleString()+' mL';$('waterGoal').textContent=g.water;$('waterBar').style.width=pct(d.water,g.water)+'%';$('waterPct').textContent=pct(d.water,g.water)+'% of goal';
+ $('foodList').innerHTML=d.foods.length?d.foods.map((f,i)=>`<div class="foodrow row"><div><strong>${esc(f.name)}</strong><small>${f.cal} kcal · P ${f.protein}g · C ${f.carbs}g · F ${f.fat}g</small></div><button class="delete" data-delete="${i}">Remove</button></div>`).join(''):'Nothing logged yet. Add your first meal above.';
+ document.querySelectorAll('[data-delete]').forEach(b=>b.onclick=()=>{d.foods.splice(+b.dataset.delete,1);save()});
+ const ws=db.weights||[];$('weightHistory').innerHTML=ws.length?`<b style="color:white;font-size:22px">${ws[ws.length-1].value} lbs</b><br>`+ws.slice(-8).reverse().map(w=>`${w.date}: ${w.value} lbs`).join('<br>'):'No weight entries yet.';
+}
+function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function addFood(f){day().foods.push(f);save()}
+$('addFood').onclick=()=>{let name=$('foodName').value.trim(),cal=$('foodCal').value;if(!name||cal===''){alert('Enter a food name and calories.');return}addFood({name,cal:+cal,protein:+$('foodProtein').value||0,carbs:+$('foodCarbs').value||0,fat:+$('foodFat').value||0});['foodName','foodCal','foodProtein','foodCarbs','foodFat'].forEach(id=>$(id).value='')};
+async function lookup(code){
+ code=String(code||'').trim();if(!code){$('scanStatus').textContent='Enter a barcode first.';return}
+ $('scanStatus').textContent='Looking up product…';
+ try{
+  const r=await fetch('https://world.openfoodfacts.org/api/v2/product/'+encodeURIComponent(code)+'.json?fields=product_name,product_name_en,brands,serving_size,nutriments');
+  const j=await r.json();if(j.status!==1||!j.product)throw Error('Product not found in Open Food Facts.');
+  const p=j.product,n=p.nutriments||{},factor=Number(n['energy-kcal_value']||n['energy-kcal_100g']||0);
+  const name=[p.product_name||p.product_name_en||'Packaged food',p.brands].filter(Boolean).join(' · ');
+  $('foodName').value=name;$('foodCal').value=Math.round(Number(n['energy-kcal_100g']??factor)||0);
+  $('foodProtein').value=Number(n.proteins_100g||0).toFixed(1);$('foodCarbs').value=Number(n.carbohydrates_100g||0).toFixed(1);$('foodFat').value=Number(n.fat_100g||0).toFixed(1);
+  $('scanStatus').textContent='Found '+name+'. Nutrition values are per 100 g; adjust them to the amount you ate before adding.';
+  $('foodName').scrollIntoView({behavior:'smooth',block:'center'});
+ }catch(e){$('scanStatus').textContent=e.message+' You can enter the nutrition facts manually.'}
+}
+$('lookup').onclick=()=>lookup($('barcode').value);
+let scanner=null;
+$('scanBtn').onclick=async()=>{
+ if(!window.Html5Qrcode){$('scanStatus').textContent='Scanner library did not load. Try entering the barcode manually.';return}
+ $('scanner').style.display='block';$('scanStatus').textContent='Allow camera access and point it at a barcode.';
+ scanner=new Html5Qrcode('reader');
+ try{await scanner.start({facingMode:'environment'},{fps:10,qrbox:{width:260,height:130}},async text=>{ $('barcode').value=text;await stopScanner();await lookup(text)})}
+ catch(e){$('scanStatus').textContent='Could not start camera. Allow camera access and open this app from its secure website address.';$('scanner').style.display='none'}
+};
+async function stopScanner(){if(scanner){try{await scanner.stop();scanner.clear()}catch(e){}scanner=null}$('scanner').style.display='none'}
+$('stopScan').onclick=stopScanner;
+document.querySelectorAll('[data-water]').forEach(b=>b.onclick=()=>{day().water=Math.max(0,day().water+Number(b.dataset.water));save()});
+$('logWeight').onclick=()=>{let v=Number($('weightInput').value);if(!v||v<=0)return;db.weights=db.weights||[];db.weights.push({date:new Date().toLocaleDateString(),value:v});$('weightInput').value='';save()};
+$('editGoals').onclick=()=>{let g=goals();$('goalEditor').style.display=$('goalEditor').style.display==='none'?'block':'none';[['Cal','cal'],['Protein','protein'],['Carbs','carbs'],['Fat','fat'],['Water','water']].forEach(([a,b])=>$('set'+a).value=g[b])};
+$('saveGoals').onclick=()=>{db.goals={cal:+$('setCal').value||defaults.cal,protein:+$('setProtein').value||defaults.protein,carbs:+$('setCarbs').value||defaults.carbs,fat:+$('setFat').value||defaults.fat,water:+$('setWater').value||defaults.water};save();$('goalEditor').style.display='none'};
+if('serviceWorker' in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
+render();
+</script>
+</body></html>
